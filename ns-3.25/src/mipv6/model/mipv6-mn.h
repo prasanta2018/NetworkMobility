@@ -39,7 +39,7 @@ public:
    * \brief constructor.
    * \param haalist list of home agent addresses
    */
-  Mipv6Mn (std::list<Ipv6Address> haalist);
+  Mipv6Mn (std::list<Ipv6Address> haalist,bool RorH,Ipv6Address mnp);//adding last2 argument in constructor for NEMO
 
   virtual ~Mipv6Mn ();
 
@@ -204,6 +204,10 @@ protected:
    */
   virtual uint8_t HandleCoT (Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface);
 
+
+
+void MobNetPrefAdvd(Ipv6Address prefix,uint32_t indexRouter); // adding for Radvd in NEMO
+
 private:
 
   /**
@@ -250,6 +254,13 @@ private:
    * \brief current interface index of the MN.
    */
   uint32_t m_IfIndex;
+
+
+
+  bool m_mnflag; // flag for MN as Router or Host ,adding for NEMO,bydefault false
+ 
+  Ipv6Address m_mnp; // mobile network prefix ,adding for NEMO
+
 
   /**
    * \brief Callback to trace RX (reception) ba packets.

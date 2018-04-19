@@ -40,10 +40,21 @@ namespace ns3 {
 
 Mipv6HaHelper::Mipv6HaHelper ()
 {
+m_haflag=false;
 }
 
 Mipv6HaHelper::~Mipv6HaHelper ()
 {
+}
+
+void Mipv6HaHelper::SetHAAs(bool RorH)   //  NEMO
+{
+m_haflag=RorH;
+}
+
+bool Mipv6HaHelper::GetHAAs( ) const   //  NEMO
+{
+return m_haflag;
 }
 
 void
@@ -81,7 +92,8 @@ Mipv6HaHelper::Install (Ptr<Node> node)
       NS_ASSERT_MSG( !mn, "MN stack is installed on HA, not allowed");
   
     }  
-  Ptr<Mipv6Ha> ha = CreateObject<Mipv6Ha> ();
+  
+  Ptr<Mipv6Ha> ha = CreateObject<Mipv6Ha> (m_haflag);  // adding the argument in constructor for NEMO
  	
   node->AggregateObject (ha);
 }
@@ -100,10 +112,32 @@ Mipv6MnHelper::Mipv6MnHelper (std::list<Ipv6Address> haalist, bool rotopt)
  m_rotopt (rotopt)     //must be false in this implementation (set as false by default)
 {
  m_rotopt = false;
+ m_mnflag=false;  //NEMO
+ m_mnp="0::0";   //NEMO
 }
 
 Mipv6MnHelper::~Mipv6MnHelper ()
 {
+}
+
+void Mipv6MnHelper::SetMNAs(bool RorH)   //NEMO
+{
+m_mnflag=RorH;
+}
+
+bool Mipv6MnHelper::GetMNAs() const              //NEMO
+{
+return m_mnflag;
+}
+
+void Mipv6MnHelper::SetMobileNetPref(Ipv6Address mnp)    //NEMO
+{
+m_mnp=mnp;
+}
+
+Ipv6Address Mipv6MnHelper::GetMobileNetPref() const   //NEMO
+{
+return m_mnp;
 }
 
 void
@@ -140,13 +174,16 @@ Mipv6MnHelper::Install (Ptr<Node> node) const
       NS_ASSERT_MSG ( !ha, "HA stack is installed on MN, not allowed");
 
     }
-
-  Ptr<Mipv6Mn> mn = CreateObject<Mipv6Mn> (m_Haalist);  // Pass Home Agent Address List as argument
+  //(adding last2 argument in constructor for NEMO)
+  Ptr<Mipv6Mn> mn = CreateObject<Mipv6Mn> (m_Haalist,m_mnflag,m_mnp);  // Pass Home Agent Address List as argument (adding last 2 arguments for NEMO in constructor)
 
   mn->SetRouteOptimizationReuiredField (m_rotopt);  //Set by default false as the current implementation does
                                                 //not support route optimization, otherwise set to m_rotopt
   node->AggregateObject (mn);
 }
+
+
+
 
 //CN Helper
 

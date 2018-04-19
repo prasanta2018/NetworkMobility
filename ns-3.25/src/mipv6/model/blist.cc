@@ -86,7 +86,8 @@ BList::BList (std::list<Ipv6Address> haalist)
   m_cnrefreshTimer (Timer::CANCEL_ON_DESTROY),
   m_hotiretransTimer (Timer::CANCEL_ON_DESTROY),
   m_cotiretransTimer (Timer::CANCEL_ON_DESTROY),
-  m_HomeAddressRegisteredFlag (false)
+  m_HomeAddressRegisteredFlag (false),
+  m_FlagR(0)  //NEMO
 
 {
   NS_LOG_FUNCTION_NOARGS ();
@@ -1013,5 +1014,27 @@ void BList::SetCoTIPacket (Ptr<Packet> pkt)
   NS_LOG_FUNCTION (this << pkt);
   m_pktcoti = pkt;
 }
+
+
+bool BList::GetFlagR () const   // NEMO
+{
+        return m_FlagR;
+}
+
+void BList::SetFlagR (bool r)    // NEMO
+{
+        m_FlagR=r;
+}
+
+Ipv6Address BList::GetMobileNetworkPrefix () const      //NEMO
+{
+   return m_mobilenetworkprefix;
+}
+ 
+void BList::SetMobileNetworkPrefix (Ipv6Address prefix)   // NEMO
+{ 
+   m_mobilenetworkprefix=prefix;
+}
+
 
 } /* namespace ns3 */

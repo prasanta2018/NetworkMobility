@@ -685,6 +685,31 @@ public:
    */
   bool IsHomeAddressRegistered ();
 
+  
+  /**
+     * \brief get R Flag of MR
+     * \return R Flag value
+     */
+    bool GetFlagR () const;      //NEMO
+
+    /**
+     * \brief set R Flag of MR
+     * \param r flag value
+     */
+    void SetFlagR (bool r);           //NEMO
+
+    /**
+   * \brief get mobile network prefix.
+   * \return mobile network prefix
+   */
+  Ipv6Address GetMobileNetworkPrefix () const;   //NEMO
+  /**
+   * \brief set mobile network prefix.
+   * \param prefix mobile network prefix.
+   */
+  void SetMobileNetworkPrefix (Ipv6Address prefix);   //NEMO
+
+
 
 
 private:
@@ -917,6 +942,18 @@ private:
    * \brief the MN.
    */
   Ptr<Node> m_node;
+
+   /**
+     * \brief The R Flag of MR
+     */
+    bool m_FlagR;                           //NEMO
+
+     /**
+     * \brief Mobile Network Prefix Of MR
+     */   
+
+    Ipv6Address m_mobilenetworkprefix;     //NEMO
+
 };
 
 } /* ns3 */

@@ -286,6 +286,11 @@ void Mipv6L4Protocol::RegisterMobilityOptions ()
   auth->SetNode (m_node);
   ipv6MobilityOptionDemux->Insert (auth);
 
+  //Added for NEMO
+  Ptr<Ipv6MobilityOptionMobileNetworkPrefix> mnp = CreateObject<Ipv6MobilityOptionMobileNetworkPrefix>();
+  mnp->SetNode (m_node);
+  ipv6MobilityOptionDemux->Insert (mnp);
+
 }
 
 } /* namespace ns3 */

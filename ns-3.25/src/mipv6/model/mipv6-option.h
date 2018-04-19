@@ -168,6 +168,17 @@ public:
    */
   void SetRefreshInterval (uint16_t intvl);
 
+  /**
+   * \brief Get the mobile network prefix.
+   * \return mobile network prefix
+   */
+   Ipv6Address GetMobileNetworkPrefix () const;   //NEMO
+   /**
+   * \brief Set the mobile network prefix.
+   * \param mobnetpref mobile network prefix
+   */
+   void SetMobileNetworkPrefix (Ipv6Address mobnetpref);  //NEMO
+
 protected:
 private:
   //for MIPv6
@@ -195,6 +206,11 @@ private:
    * \brief refresh interval.
    */
   uint16_t m_interval;
+
+   /**
+   * \brief mobile netork prefix.
+   */
+   Ipv6Address m_mobnetpref;        //NEMO
 };
 
 /**
@@ -453,6 +469,53 @@ public:
   virtual uint8_t Process (Ptr<Packet> packet, uint8_t offset, Mipv6OptionBundle& bundle);
 
 private:
+};
+
+
+/**
+ * \class Ipv6MobilityOptionMobileNetworkPrefix
+ * \brief Ipv6 Mobility Option Mobile Network Prefix
+ */
+class Ipv6MobilityOptionMobileNetworkPrefix : public Mipv6Option    // NEMO
+{
+public:
+ /**
+   * \brief option no.
+   */
+  static const uint8_t OPT_NUMBER = 6;
+
+  /**
+   * \brief Get the type identificator.
+   * \return type identificator
+   */
+  static TypeId GetTypeId (void);
+
+  /**
+   * \brief Destructor.
+   */
+  virtual ~Ipv6MobilityOptionMobileNetworkPrefix ();
+
+  /**
+   * \brief Get the option number.
+   * \return option number
+   */
+  virtual uint8_t GetMobilityOptionNumber () const;
+
+  /**
+   * \brief Process method
+   *
+   * Called from Ipv6MobilityL4Protocol::Receive.
+   * \param packet the packet
+   * \param offset offset
+   * \param bundle bundle of all option data
+   * \return the processed size
+   */
+  virtual uint8_t Process (Ptr<Packet> packet, uint8_t offset, Mipv6OptionBundle& bundle);
+
+private:
+
+
+
 };
 
 

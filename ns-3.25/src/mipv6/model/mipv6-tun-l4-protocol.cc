@@ -191,16 +191,18 @@ enum IpL4Protocol::RxStatus Ipv6TunnelL4Protocol::Receive(Ptr<Packet> p, Ipv6Hea
   if (destination.IsEqual(GetHomeAddress()))
 
   {
+  NS_LOG_FUNCTION ("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ");
     uint8_t nextHeader = innerHeader.GetNextHeader ();
     Ptr<IpL4Protocol> protocol = 0;
     protocol = ipv6->GetProtocol (nextHeader);
     if (protocol)
       {
         m_rxMnPktTrace (packet, innerHeader, header, incomingInterface);
+  NS_LOG_FUNCTION ("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR");
         return protocol->Receive (packet, innerHeader, incomingInterface);
       }
   }
-
+  NS_LOG_FUNCTION ("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS");
   m_rxHaPktTrace (packet, innerHeader, header, incomingInterface);
   ipv6->Send (packet, source, destination, innerHeader.GetNextHeader(), route);
   return IpL4Protocol::RX_OK;
@@ -210,6 +212,7 @@ enum IpL4Protocol::RxStatus Ipv6TunnelL4Protocol::Receive(Ptr<Packet> p, Ipv6Hea
 
 uint16_t Ipv6TunnelL4Protocol::AddTunnel(Ipv6Address remote, Ipv6Address local)
 {
+  NS_LOG_FUNCTION (this << "In Addtunnel");
   NS_LOG_FUNCTION (this << remote << local);
   
   //Search existing tunnel device

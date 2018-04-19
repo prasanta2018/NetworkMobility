@@ -562,4 +562,114 @@ Mipv6OptionHeader::Alignment Ipv6MobilityOptionBindingAuthorizationDataHeader::G
 }
 
 
+NS_OBJECT_ENSURE_REGISTERED (Ipv6MobilityOptionMobileNetworkPrefixHeader);  // new option for NEMO
+
+TypeId Ipv6MobilityOptionMobileNetworkPrefixHeader::GetTypeId ()
+{
+  static TypeId tid = TypeId ("ns3::Ipv6MobilityOptionMobileNetworkPrefixHeader")
+    .SetParent<Mipv6OptionHeader> ()
+    .AddConstructor<Ipv6MobilityOptionMobileNetworkPrefixHeader> ()
+  ;
+  return tid;
+}
+
+TypeId Ipv6MobilityOptionMobileNetworkPrefixHeader::GetInstanceTypeId () const
+{
+  return GetTypeId ();
+}
+
+Ipv6MobilityOptionMobileNetworkPrefixHeader::Ipv6MobilityOptionMobileNetworkPrefixHeader ()
+{
+  SetType (Mipv6Header::IPV6_MOBILITY_OPT_MOBILE_NETWORK_PREFIX);
+  SetLength (18);
+  SetReserved (0);
+  SetPrefixLength(128);
+  m_mobilenetworkprefix.Set ("::");
+}
+
+Ipv6MobilityOptionMobileNetworkPrefixHeader::~Ipv6MobilityOptionMobileNetworkPrefixHeader ()
+{
+}
+
+uint8_t Ipv6MobilityOptionMobileNetworkPrefixHeader::GetReserved () const
+{
+  return m_reserved;
+}
+
+void Ipv6MobilityOptionMobileNetworkPrefixHeader::SetReserved (uint8_t reserved)
+{
+  m_reserved=reserved;
+}
+
+uint8_t Ipv6MobilityOptionMobileNetworkPrefixHeader::GetPrefixLength () const
+{
+  return m_prefixlength;
+}
+
+void Ipv6MobilityOptionMobileNetworkPrefixHeader::SetPrefixLength (uint8_t prefixlength)
+{
+  m_prefixlength=prefixlength;
+}
+
+Ipv6Address Ipv6MobilityOptionMobileNetworkPrefixHeader::GetMobileNetworkPrefix () const
+{
+   return m_mobilenetworkprefix;
+}
+
+void Ipv6MobilityOptionMobileNetworkPrefixHeader::SetMobileNetworkPrefix (Ipv6Address prefix)
+{
+   m_mobilenetworkprefix=prefix;
+}
+
+void Ipv6MobilityOptionMobileNetworkPrefixHeader::Print (std::ostream& os) const
+{
+  os << "( type=" << GetType () << ", length(excluding TL)=" << GetLength () << ", reserved=" << GetReserved () << ", prefixlength=" << GetPrefixLength () << ")";
+}
+
+uint32_t Ipv6MobilityOptionMobileNetworkPrefixHeader::GetSerializedSize () const
+{
+  return GetLength () + 2;
+}
+
+void Ipv6MobilityOptionMobileNetworkPrefixHeader::Serialize (Buffer::Iterator start) const
+{
+  uint8_t buff_prefix[16];
+  Buffer::Iterator i = start;
+
+  i.WriteU8 (GetType ());
+  i.WriteU8 (GetLength ());
+  i.WriteU8 (GetReserved ());
+  i.WriteU8 (GetPrefixLength ());
+  
+  m_mobilenetworkprefix.Serialize (buff_prefix);
+  i.Write (buff_prefix, 16);
+}
+
+uint32_t Ipv6MobilityOptionMobileNetworkPrefixHeader::Deserialize (Buffer::Iterator start)
+{
+  uint8_t buff[16];
+  Buffer::Iterator i = start;
+
+
+  SetType (i.ReadU8 ());
+  SetLength (i.ReadU8 ());
+  SetReserved (i.ReadU8 ());
+  SetPrefixLength (i.ReadU8 ());
+
+  i.Read (buff, 16);
+  m_mobilenetworkprefix.Set (buff);
+  
+
+  return GetSerializedSize ();
+}
+
+Mipv6OptionHeader::Alignment Ipv6MobilityOptionMobileNetworkPrefixHeader::GetAlignment () const
+{
+  return (Alignment){
+           8,4
+  };                       //8n+4
+}
+
+
+
 } /* namespace ns3 */

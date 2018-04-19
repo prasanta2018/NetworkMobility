@@ -73,13 +73,17 @@ void Mipv6Demux::Insert (Ptr<Mipv6Mobility> mobility)
 
 Ptr<Mipv6Mobility> Mipv6Demux::GetMobility (int mobilityNumber)
 {
+  
   for (Ipv6MobilityList_t::iterator i = m_mobilities.begin (); i != m_mobilities.end (); ++i)
     {
+      
       if ((*i)->GetMobilityNumber () == mobilityNumber)
         {
+          //std::cout<<(*i)->GetMobilityNumber () << mobilityNumber ;
           return *i;
         }
     }
+  
   return 0;
 }
 

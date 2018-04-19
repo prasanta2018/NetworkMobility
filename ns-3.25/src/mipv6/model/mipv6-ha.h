@@ -39,7 +39,7 @@ public:
   /**
    * \brief Constructor.
    */
-  Mipv6Ha ();
+  Mipv6Ha (bool haflag);     // adding argument in constructor for NEMO     
   /**
    * \brief Destructor.
    */
@@ -143,11 +143,15 @@ protected:
   bool ClearTunnelAndRouting (BCache::Entry *bce);
 
 
+  bool CheckInvalidPrefix(Ipv6Address mnp);   //NEMO
+
 private:
   /**
    * \brief the binding cache associated with this HA.
    */
   Ptr<BCache> m_bCache;
+
+  bool m_haflag;   //NEMO
 
   /**
    * \brief Callback to trace RX (reception) bu packets.

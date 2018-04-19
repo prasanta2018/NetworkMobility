@@ -61,7 +61,8 @@ Mipv6OptionBundle::Mipv6OptionBundle ()
   m_hi (0),
   m_coi (0),
   m_auth (0),
-  m_interval (0)
+  m_interval (0),
+  m_mobnetpref("0::0")   // NEMO
 {
 }
 
@@ -137,6 +138,19 @@ uint16_t Mipv6OptionBundle::GetRefreshInterval () const
 void Mipv6OptionBundle::SetRefreshInterval (uint16_t intvl)
 {
   m_interval = intvl;
+}
+
+Ipv6Address Mipv6OptionBundle::GetMobileNetworkPrefix () const    //NEMO
+{
+  NS_LOG_FUNCTION (this);
+  return m_mobnetpref;
+}
+
+void Mipv6OptionBundle::SetMobileNetworkPrefix (Ipv6Address mobnetpref)   //NEMO
+{
+  NS_LOG_FUNCTION ( this << mobnetpref );
+
+  m_mobnetpref = mobnetpref;
 }
 
 
@@ -369,6 +383,46 @@ uint8_t Ipv6MobilityOptionBindingAuthorizationData::Process (Ptr<Packet> packet,
   bundle.SetAuthenticator (authh.GetAuthenticator ());
 
   return authh.GetSerializedSize ();
+}
+
+
+NS_OBJECT_ENSURE_REGISTERED (Ipv6MobilityOptionMobileNetworkPrefix);  // NEMO
+
+TypeId Ipv6MobilityOptionMobileNetworkPrefix::GetTypeId ()
+{
+  static TypeId tid = TypeId ("ns3::Ipv6MobilityOptionMobileNetworkPrefix")
+    .SetParent<Mipv6Option>()
+  ;
+  return tid;
+}
+
+Ipv6MobilityOptionMobileNetworkPrefix::~Ipv6MobilityOptionMobileNetworkPrefix ()
+{
+  NS_LOG_FUNCTION_NOARGS ();
+}
+
+uint8_t Ipv6MobilityOptionMobileNetworkPrefix::GetMobilityOptionNumber () const
+{
+  NS_LOG_FUNCTION (this);
+
+  return OPT_NUMBER;
+}
+
+uint8_t Ipv6MobilityOptionMobileNetworkPrefix::Process (Ptr<Packet> packet, uint8_t offset, Mipv6OptionBundle& bundle)
+{
+  NS_LOG_FUNCTION ( this << packet );
+
+  Ipv6MobilityOptionMobileNetworkPrefixHeader mnph;
+
+  Ptr<Packet> p = packet->Copy ();
+
+  p->RemoveAtStart (offset);
+
+  p->RemoveHeader (mnph);
+
+  bundle.SetMobileNetworkPrefix (mnph.GetMobileNetworkPrefix ());
+
+  return mnph.GetSerializedSize ();
 }
 
 

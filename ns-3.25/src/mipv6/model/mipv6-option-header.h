@@ -539,6 +539,112 @@ private:
 };
 
 
+/**
+ * \class Ipv6MobilityOptionMobileNetworkPrefixHeader
+ * \brief Ipv6Mobility Option Mobile Network Prefix Header.
+ */
+class Ipv6MobilityOptionMobileNetworkPrefixHeader : public Mipv6OptionHeader   //adding new option for NEMO
+{
+public:
+  /**
+   * \brief Get the type identifier.
+   * \return type identifier
+   */
+  static TypeId GetTypeId ();
+  /**
+   * \brief Return the instance type identifier.
+   * \return instance type ID
+   */
+  virtual TypeId GetInstanceTypeId () const;
+  /**
+   * \brief constructor
+   */
+  Ipv6MobilityOptionMobileNetworkPrefixHeader ();
+  /**
+   * \brief destructor
+   */
+  virtual ~Ipv6MobilityOptionMobileNetworkPrefixHeader ();
+
+  /**
+   * \brief get reserved value.
+   * \return reserved value
+   */
+  uint8_t GetReserved () const;
+  /**
+   * \brief set the reserved.
+   * \param reserved reserved value
+   */
+  void SetReserved (uint8_t reserved);
+
+  /**
+   * \brief get prefix length value.
+   * \return prefix length value
+   */
+  uint8_t GetPrefixLength () const;
+  /**
+   * \brief set the prefix length.
+   * \param prefixlength prefix length value
+   */
+  void SetPrefixLength (uint8_t prefixlength);
+
+   /**
+   * \brief get mobile network prefix.
+   * \return mobile network prefix
+   */
+  Ipv6Address GetMobileNetworkPrefix () const;
+  /**
+   * \brief set mobile network prefix.
+   * \param prefix mobile network prefix.
+   */
+  void SetMobileNetworkPrefix (Ipv6Address prefix);
+
+  /**
+   * \brief Print informations.
+   * \param os output stream
+   */
+  virtual void Print (std::ostream& os) const;
+  /**
+   * \brief Get the serialized size.
+   * \return serialized size
+   */
+  virtual uint32_t GetSerializedSize () const;
+  /**
+   * \brief Serialize the packet.
+   * \param start start offset
+   */
+  virtual void Serialize (Buffer::Iterator start) const;
+  /**
+   * \brief Deserialize the packet.
+   * \param start start offset
+   * \return length of packet
+   */
+  virtual uint32_t Deserialize (Buffer::Iterator start);
+  /**
+   * \brief Get the Alignment requirement of this option header
+   * \return the required alignment
+   */
+  virtual Alignment GetAlignment () const;
+protected:
+private:
+  /**
+   * \brief prefix length
+   */
+  uint8_t m_prefixlength;
+
+   /**
+   * \brief reserved
+   */
+  uint8_t m_reserved;
+
+   /**
+   * \brief mobile network prefix
+   */
+  Ipv6Address m_mobilenetworkprefix;
+};
+
+
+
+
 } /* namespace ns3 */
 
 #endif /* IPV6_MOBILITY_OPTION_HEADER_H */

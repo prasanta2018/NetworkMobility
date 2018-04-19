@@ -62,12 +62,18 @@ public:
    */
   std::list<Ipv6Address> GetHomeAgentAddressList ();
 
+   void SetHAAs(bool RorH) ;           // NEMO
+   
+   bool GetHAAs() const;               // NEMO
+
 protected:
 private:
 /**
    * \brief node.
    */
   Ptr<Node> m_node;
+
+  bool m_haflag;              //NEMO  
 };
 
 /**
@@ -108,6 +114,14 @@ public:
    */
   void Install (Ptr<Node> node) const;
 
+  void SetMNAs(bool RorH);                    // NEMO
+  
+  bool GetMNAs() const;                           // NEMO
+
+  void SetMobileNetPref(Ipv6Address mnp);  // NEMo
+
+  Ipv6Address GetMobileNetPref() const;         //  NEMO
+
 
 protected:
 private:
@@ -119,6 +133,11 @@ private:
  * \brief route optimization flag
  */
   bool m_rotopt; //route optimization flag
+
+
+  bool m_mnflag; // flag for MN as Router or Host - NEMO
+ 
+  Ipv6Address m_mnp; // mobile network prefix -  NEMO
 
 };
 

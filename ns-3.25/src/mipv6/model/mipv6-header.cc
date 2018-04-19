@@ -190,6 +190,8 @@ void Mipv6OptionField::AddOption (Mipv6OptionHeader const& option)
 
   uint32_t pad = CalculatePad (option.GetAlignment ());
 
+  
+
   NS_LOG_LOGIC ("need " << pad << " bytes padding");
   switch (pad)
     {
@@ -207,6 +209,7 @@ void Mipv6OptionField::AddOption (Mipv6OptionHeader const& option)
   Buffer::Iterator it = m_optionData.End ();
   it.Prev (option.GetSerializedSize ());
   option.Serialize (it);
+ 
 }
 
 uint32_t Mipv6OptionField::CalculatePad (Mipv6OptionHeader::Alignment alignment) const
@@ -254,6 +257,7 @@ Ipv6MobilityBindingUpdateHeader::Ipv6MobilityBindingUpdateHeader ()
   SetFlagH (0);
   SetFlagL (0);
   SetFlagK (0);
+  SetFlagR (0);      //NEMO
   SetReserved2 (0);
   SetLifetime (0);
 }
@@ -312,6 +316,15 @@ void Ipv6MobilityBindingUpdateHeader::SetFlagK (bool k)
   m_flagK = k;
 }
 
+bool Ipv6MobilityBindingUpdateHeader::GetFlagR () const  //NEMO
+{
+  return m_flagR;
+}
+
+void Ipv6MobilityBindingUpdateHeader::SetFlagR (bool r)  //NEMO
+{
+  m_flagR = r;
+}
 
 uint16_t Ipv6MobilityBindingUpdateHeader::GetReserved2 () const
 {
@@ -378,6 +391,10 @@ void Ipv6MobilityBindingUpdateHeader::Serialize (Buffer::Iterator start) const
     {
       reserved2 |= (uint16_t)(1 << 12);
     }
+  if (m_flagR)                              //NEMO (adding Flag-R field in BU)
+    {
+      reserved2 |= (uint16_t)(1 << 11);
+    }
 
   i.WriteHtonU16 (reserved2);
   i.WriteHtonU16 (m_lifetime);
@@ -403,6 +420,7 @@ uint32_t Ipv6MobilityBindingUpdateHeader::Deserialize (Buffer::Iterator start)
   m_flagH = false;
   m_flagL = false;
   m_flagK = false;
+  m_flagR = false; //NEMO
 
   if (m_reserved2 & (1 << 15))
     {
@@ -422,6 +440,11 @@ uint32_t Ipv6MobilityBindingUpdateHeader::Deserialize (Buffer::Iterator start)
   if (m_reserved2 & (1 << 12))
     {
       m_flagK = true;
+    }
+  
+  if (m_reserved2 & (1 << 11)) //NEMO (adding Flag-R field in BU)
+    {
+      m_flagR = true;
     }
 
   m_lifetime = i.ReadNtohU16 ();
@@ -455,6 +478,7 @@ Ipv6MobilityBindingAckHeader::Ipv6MobilityBindingAckHeader ()
 
   SetStatus (0);
   SetFlagK (0);
+  SetFlagR (0);   //NEMO
   SetReserved2 (0);
   SetSequence (0);
   SetLifetime (0);
@@ -482,6 +506,16 @@ bool Ipv6MobilityBindingAckHeader::GetFlagK () const
 void Ipv6MobilityBindingAckHeader::SetFlagK (bool k)
 {
   m_flagK = k;
+}
+
+bool Ipv6MobilityBindingAckHeader::GetFlagR () const   //NEMO
+{
+  return m_flagR;
+}
+
+void Ipv6MobilityBindingAckHeader::SetFlagR (bool r)    //NEMO
+{
+  m_flagR = r;
 }
 
 uint8_t Ipv6MobilityBindingAckHeader::GetReserved2 () const
@@ -543,6 +577,10 @@ void Ipv6MobilityBindingAckHeader::Serialize (Buffer::Iterator start) const
     {
       reserved2 |= (uint8_t)(1 << 7);
     }
+  if (m_flagR)        //NEMO (adding Flag-R field in BA)
+    {
+      reserved2 |= (uint8_t)(1 << 6);
+    }
 
   i.WriteU8 (reserved2);
   i.WriteHtonU16 (m_sequence);
@@ -570,6 +608,10 @@ uint32_t Ipv6MobilityBindingAckHeader::Deserialize (Buffer::Iterator start)
   if (m_reserved2 & (1 << 7))
     {
       m_flagK = true;
+    }
+  if (m_reserved2 & (1 << 6))    //NEMO (adding Flag-R field in BA)
+    {
+      m_flagR = true;
     }
 
   m_sequence = i.ReadNtohU16 ();

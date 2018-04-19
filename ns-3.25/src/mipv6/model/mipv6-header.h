@@ -62,8 +62,6 @@ public:
     BA_STATUS_REASON_UNSPECIFIED = 128,
     BA_STATUS_ADMINISTRATIVELY_PROHIBITED,
     BA_STATUS_INSUFFICIENT_RESOURCES = 130,
-
-
     BA_STATUS_HOME_REGISTRATION_NOT_SUPPORTED,
     BA_STATUS_NOT_HOME_SUBNET,
     BA_STATUS_NOT_HA_FOR_THIS_MN,
@@ -73,6 +71,10 @@ public:
     BA_STATUS_EXPIRED_CARE_OF_NONCE_INDEX,
     BA_STATUS_EXPIRED_NONCES,
     BA_STATUS_REGISTRATION_TYPE_CHANGE_DISALLOWED,
+    BA_STATUS_MOBILE_ROUTER_OPERATION_NOT_PERMITTED,    //NEMO
+    BA_STATUS_INVALID_PREFIX,                           //NEMO
+    BA_STATUS_NOT_AUTHORIZED_FOR_PREFIX,                //NEMO
+    BA_STATUS_FORWARDING_SETUP_FAILED,                  //NEMO
     BA_STATUS_INVALID_COA = 174
 
   };
@@ -88,8 +90,8 @@ public:
     IPV6_MOBILITY_OPT_BINDING_REFRESH_ADVICE,
     IPV6_MOBILITY_OPT_ALTERNATE_CARE_OF_ADDRESS,
     IPV6_MOBILITY_OPT_NONCE_INDICES,
-    IPV6_MOBILITY_OPT_BINDING_AUTHORIZATION_DATA
-
+    IPV6_MOBILITY_OPT_BINDING_AUTHORIZATION_DATA,
+    IPV6_MOBILITY_OPT_MOBILE_NETWORK_PREFIX  //NEMO
 
   };
   /**
@@ -395,6 +397,18 @@ public:
    */
   void SetFlagK (bool k);
 
+   /**
+   * \brief Get the R flag.
+   * \return R flag
+   */
+  bool GetFlagR () const;      //NEMO
+   
+
+   /**
+   * \brief Set the R flag.
+   * \param r value
+   */
+   void SetFlagR (bool r);     // NEMO  
 
 
   /**
@@ -474,6 +488,11 @@ private:
   bool m_flagK;
 
   /**
+   * \brief The R flag.
+   */
+  bool m_flagR;              //NEMO
+
+  /**
    * \brief The P flag.
    */
   /**
@@ -540,6 +559,19 @@ public:
    * \param k value
    */
   void SetFlagK (bool k);
+
+
+    /**
+   * \brief Get the R flag.
+   * \return R flag
+   */
+  bool GetFlagR () const;   //NEMO
+
+  /**
+   * \brief Set the R flag.
+   * \param r value
+   */
+  void SetFlagR (bool r);     //NEMO
 
   /**
    * \brief Get the P flag.
@@ -617,7 +649,7 @@ private:
   /**
    * \brief The R flag.
    */
-  //bool m_flagR;
+  bool m_flagR;         //NEMO
 
   /**
    * \brief The reserved value.

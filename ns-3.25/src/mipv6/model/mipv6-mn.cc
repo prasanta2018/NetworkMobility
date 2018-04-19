@@ -45,6 +45,7 @@
 #include "ns3/trace-source-accessor.h"
 
 
+
 using namespace std;
 
 NS_LOG_COMPONENT_DEFINE ("Mipv6Mn");
@@ -76,12 +77,16 @@ Mipv6Mn::GetTypeId (void)
   return tid;
 }
 
-Mipv6Mn::Mipv6Mn (std::list<Ipv6Address> haalist)
+Mipv6Mn::Mipv6Mn (std::list<Ipv6Address> haalist,bool RorH,Ipv6Address mnp)      //adding last2 arg
 {
   m_Haalist = haalist;
   m_hsequence = 0;
   m_cnsequence = 0;
   m_roflag = false;
+  
+  m_mnflag=RorH; //NEMO
+  m_mnp=mnp;   //NEMO
+  
 }
 
 Mipv6Mn::~Mipv6Mn ()
@@ -201,9 +206,32 @@ Ptr<Packet> Mipv6Mn::BuildHomeBU ()
   bu.SetFlagH (true);
   bu.SetFlagL (true);
   bu.SetFlagK (true);
+  
 
+  //NS_LOG_FUNCTION (this << m_mnflag << "xxxxxxxxxxx");
+
+  if(m_mnflag==true)     //adding if condition for NEMO
+        {
+        m_buinf->SetFlagR (m_mnflag); 
+        
+        bu.SetFlagR (m_buinf->GetFlagR ());
+        }
 
   bu.SetLifetime ((uint16_t)Mipv6L4Protocol::MAX_BINDING_LIFETIME);
+
+  if(m_mnflag==true)    //adding if condition for NEMO
+  {
+
+  Ipv6MobilityOptionMobileNetworkPrefixHeader mnph;
+
+  m_buinf->SetMobileNetworkPrefix (m_mnp);
+
+  mnph.SetMobileNetworkPrefix(m_buinf->GetMobileNetworkPrefix ());
+
+  bu.AddOption(mnph);  
+  }
+
+ // bu.SetPayloadProto(6);
 
   p->AddHeader (bu);
 
@@ -301,7 +329,13 @@ Ptr<Packet> Mipv6Mn::BuildCoTI ()
 
 void Mipv6Mn::HandleNewAttachment (Ipv6Address ipr)
 {
-  if (!ipr.IsLinkLocal () )// && !ipr.IsEqual(m_buinf->GetHoa()))
+   NS_LOG_FUNCTION (this << ipr);
+ 
+ Ptr<Ipv6> ipv6 = GetNode ()->GetObject<Ipv6> ();
+ uint32_t ifindex = ipv6->GetInterfaceForAddress (ipr);
+ NS_LOG_FUNCTION (this << ifindex);
+
+  if (!ipr.IsLinkLocal () && ifindex!=2)// && !ipr.IsEqual(m_buinf->GetHoa()))
     {
       Ipv6Address coa = ipr;
       m_buinf->SetCoa (coa);
@@ -348,6 +382,23 @@ void Mipv6Mn::HandleNewAttachment (Ipv6Address ipr)
     }
 }
 
+
+// Adding this function for Mobile_Network_Prefix advertisement in MN (NEMO)
+
+void Mipv6Mn::MobNetPrefAdvd(Ipv6Address prefix,uint32_t indexRouter)
+{
+       Ptr<Radvd> radvd=CreateObject<Radvd> ();
+       Ptr<RadvdInterface> routerInterface= Create<RadvdInterface> (indexRouter, 1500, 50);
+       Ptr<RadvdPrefix> routerPrefix = Create<RadvdPrefix> (prefix, 64, 1.5, 2.0);
+       routerInterface->AddPrefix (routerPrefix);
+       radvd->AddConfiguration (routerInterface);
+
+       GetNode()->AddApplication (radvd);
+       radvd->SetStartTime (Simulator::Now ());
+       radvd->SetStopTime (Seconds (100.0));
+}
+
+
 uint8_t Mipv6Mn::HandleBA (Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface)
 {
 
@@ -393,6 +444,17 @@ uint8_t Mipv6Mn::HandleBA (Ptr<Packet> packet, const Ipv6Address &src, const Ipv
             m_buinf->SetHomeAddressRegistered (true);
             m_buinf->SetHomeBUPacket (0);
             m_buinf->SetHomeReachableTime (Seconds (ba.GetLifetime ()));
+
+          //adding a function call for advertising Mobile_Network_Prefix in MN (NEMO)
+
+                if(ba.GetFlagR()==true)
+                {
+                Ipv6Address prefix (m_buinf->GetMobileNetworkPrefix ());
+                uint32_t indexRouter=2; //i.e. interface no 2
+
+                MobNetPrefAdvd(prefix,indexRouter); //NEMO
+
+                }
 
 
             if (ba.GetLifetime () > 0)

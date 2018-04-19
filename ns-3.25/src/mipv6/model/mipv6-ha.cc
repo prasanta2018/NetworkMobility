@@ -34,6 +34,9 @@
 #include "mipv6-header.h"
 #include "mipv6-mobility.h"
 #include "mipv6-demux.h"
+#include "mipv6-option-demux.h" //NEMO
+#include "mipv6-option-header.h" //NEMO
+#include "mipv6-option.h" //NEMO
 #include "mipv6-l4-protocol.h"
 #include "mipv6-tun-l4-protocol.h"
 #include "mipv6-ha.h"
@@ -52,7 +55,7 @@ Mipv6Ha::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Mipv6Ha")
     .SetParent<Mipv6Agent> ()
-    .AddConstructor<Mipv6Ha> ()
+    //.AddConstructor<Mipv6Ha> ()
     .AddAttribute ("BCache", "The binding cache associated with this agent.",
                    PointerValue (),
                    MakePointerAccessor (&Mipv6Ha::m_bCache),
@@ -66,9 +69,10 @@ Mipv6Ha::GetTypeId (void)
   return tid;
 }
 
-Mipv6Ha::Mipv6Ha ()
+Mipv6Ha::Mipv6Ha (bool haflag)  // adding arg for NEMO        
   : m_bCache (0)
 {
+m_haflag=haflag;
 }
 
 Mipv6Ha::~Mipv6Ha ()
@@ -133,6 +137,10 @@ Ptr<Packet> Mipv6Ha::BuildBA (Ipv6MobilityBindingUpdateHeader bu,Ipv6Address hoa
   type2extn.SetHomeAddress (hoa);
   ba.SetSequence (bu.GetSequence ());
   ba.SetFlagK (true);
+
+   if(m_haflag==true && bu.GetFlagR ()==true)            // adding Flag-R field to BA message for NEMO
+        ba.SetFlagR (true);
+
   ba.SetStatus (status);
   ba.SetLifetime ((uint16_t)Mipv6L4Protocol::MAX_BINDING_LIFETIME);
   p->AddHeader (type2extn);
@@ -141,6 +149,25 @@ Ptr<Packet> Mipv6Ha::BuildBA (Ipv6MobilityBindingUpdateHeader bu,Ipv6Address hoa
   return p;
 }
 
+// Adding function to checking Invalid prefix in NEMO
+
+bool Mipv6Ha::CheckInvalidPrefix(Ipv6Address mnp)  //NEMO
+{
+std::list<Ipv6Address> haalist=m_bCache->GetHomePrefixes ();
+
+std::list<Ipv6Address> ::iterator it;  //NEMO
+
+for(it=haalist.begin();it!=haalist.end();it++)
+{
+        if(*it == mnp)
+           {
+                return true;
+           }
+}
+
+return false;
+
+}
 
 uint8_t Mipv6Ha::HandleBU (Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface)
 {
@@ -155,11 +182,17 @@ uint8_t Mipv6Ha::HandleBU (Ptr<Packet> packet, const Ipv6Address &src, const Ipv
   Ptr<Packet> p = packet->Copy ();
   m_rxbuTrace (p, src, dst, interface);
 
+  std::cout<<"Packet Size Init :" << p->GetSize()<< std::endl; //add
+
   Ipv6MobilityBindingUpdateHeader bu;
   p->RemoveHeader (bu);
 
+  std::cout<<"Packet Size after bu remove :" << p->GetSize()<< std::endl;//add
+
   Ipv6ExtensionDestinationHeader dest;
   p->RemoveHeader (dest);
+
+  std::cout<<"Packet Size after bu & dest remove :" << p->GetSize()<< std::endl;//add  
 
   Buffer buf;
 
@@ -171,8 +204,27 @@ uint8_t Mipv6Ha::HandleBU (Ptr<Packet> packet, const Ipv6Address &src, const Ipv
   Ipv6Address homeaddr;
   homeaddr = homopt.GetHomeAddress ();
 
+  
+
   Ptr<Mipv6Demux> ipv6MobilityDemux = GetNode ()->GetObject<Mipv6Demux> ();
   NS_ASSERT (ipv6MobilityDemux);
+
+  
+  
+/*
+  Ptr<Mipv6OptionDemux> ipv6MobilityOptDemux = GetNode ()->GetObject<Mipv6OptionDemux> ();
+  NS_ASSERT (ipv6MobilityOptDemux);
+
+   Ipv6MobilityOptionMobileNetworkPrefixHeader mnph; //NEMO
+           Buffer buf2=bu.GetOptionBuffer ();
+           Buffer::Iterator start2; 
+           start2 = buf2.Begin ();
+           mnph.Deserialize (start2);
+
+  Ptr<Mipv6Option> ipv6MobilityOpt = ipv6MobilityOptDemux->GetOption (mnph.GetType ());
+  NS_ASSERT (ipv6MobilityOpt);
+*/
+  NS_LOG_FUNCTION("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 
   Ptr<Mipv6Mobility> ipv6Mobility = ipv6MobilityDemux->GetMobility (bu.GetMhType ());
   NS_ASSERT (ipv6Mobility);
@@ -190,9 +242,76 @@ uint8_t Mipv6Ha::HandleBU (Ptr<Packet> packet, const Ipv6Address &src, const Ipv
   bce2->SetSolicitedHoA (Ipv6Address::MakeSolicitedAddress (homeaddr));
   bce2->SetLastBindingUpdateSequence (bu.GetSequence ());
   bce2->SetLastBindingUpdateTime (Time (bu.GetLifetime ()));
-  errStatus = Mipv6Header::BA_STATUS_BINDING_UPDATE_ACCEPTED;
-  bce2->MarkReachable ();
+  
 
+  
+  if(m_haflag==true && bu.GetFlagR ()==true)    // if condition for NEMO
+  {
+
+  bce2->SetFlagR (bu.GetFlagR ());  // adding R Flag to BCache Entry
+  }
+
+
+   if(bu.GetFlagR ()==true)   //NEMO
+        {
+                if(m_haflag == false)
+                       errStatus = Mipv6Header::BA_STATUS_MOBILE_ROUTER_OPERATION_NOT_PERMITTED;
+                else
+                 {
+                        if(bu.GetFlagH() == false)
+                           {
+                              errStatus = Mipv6Header::BA_STATUS_MOBILE_ROUTER_OPERATION_NOT_PERMITTED;
+                           }
+                        else
+                           {
+                             Ipv6MobilityOptionMobileNetworkPrefixHeader mnph; //NEMO
+                              Buffer buf2=bu.GetOptionBuffer ();
+                              Buffer::Iterator start2; 
+                              start2 = buf2.Begin ();
+                              mnph.Deserialize (start2);
+                              
+                              Ipv6Address mnp=mnph.GetMobileNetworkPrefix ();
+                              
+                              if(CheckInvalidPrefix(mnp)==true)
+                               errStatus = Mipv6Header::BA_STATUS_INVALID_PREFIX;
+                              else
+                                {
+                                bce2->SetMobileNetworkPrefix (mnp);
+                                errStatus = Mipv6Header::BA_STATUS_BINDING_UPDATE_ACCEPTED;
+                                
+                                
+                                }
+
+                           }
+
+                 }
+        }
+   else
+        {
+        if(m_haflag == false)
+        errStatus = Mipv6Header::BA_STATUS_BINDING_UPDATE_ACCEPTED;
+        }
+
+  // adding HA prefix advertisement in NEMO
+if(bu.GetFlagR ()==true)
+{
+  Ptr<NetDevice> dev =interface->GetDevice();
+  Ptr<Ipv6> ipv6 = GetObject<Ipv6> ();   
+  uint32_t ifindex = ipv6->GetInterfaceForDevice (dev);  
+
+  Ptr<Radvd> radvd=CreateObject<Radvd> (); 
+  Ptr<RadvdInterface> HaInterface= Create<RadvdInterface> (ifindex, 1500, 50);
+  Ptr<RadvdPrefix> routerPrefix = Create<RadvdPrefix> (bce2->GetMobileNetworkPrefix (), 64, 1.5, 2.0);
+  HaInterface->AddPrefix(routerPrefix);
+  radvd->AddConfiguration (HaInterface);
+  GetNode ()->AddApplication (radvd);
+
+  radvd->SetStartTime (Seconds (1.0));
+  radvd->SetStopTime (Seconds (100.0));
+
+}
+
+  bce2->MarkReachable ();
 
   Ptr<Packet> ba;
   ba = BuildBA (bu, homeaddr, errStatus);
@@ -295,6 +414,7 @@ bool Mipv6Ha::SetupTunnelAndRouting (BCache::Entry *bce)
   Ptr<Ipv6StaticRouting> staticRouting = staticRoutingHelper.GetStaticRouting (ipv6);
 
   staticRouting->AddHostRouteTo (bce->GetHoa (), bce->GetTunnelIfIndex (),10);
+  staticRouting->AddNetworkRouteTo (Ipv6Address ("7777:db80::"),Ipv6Prefix (64),bce->GetTunnelIfIndex (),10);
   staticRouting->RemoveRoute ("fe80::", Ipv6Prefix (64), bce->GetTunnelIfIndex (), "fe80::");
 
   return true;

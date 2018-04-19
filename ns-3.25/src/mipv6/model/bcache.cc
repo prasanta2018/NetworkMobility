@@ -115,6 +115,8 @@ void BCache::Remove (BCache::Entry* entry)
 }
 
 
+
+
 void BCache::SetHomePrefixes (std::list<Ipv6Address> halist)
 {
   m_HaaList = halist;
@@ -139,6 +141,12 @@ void BCache::SetHomePrefixes (std::list<Ipv6Address> halist)
       m_HomePrefixList.push_back (addr);
       hlist.pop_front ();
     }
+}
+
+
+std::list<Ipv6Address> BCache::GetHomePrefixes ()   // NEMO
+{
+        return m_HomePrefixList;
 }
 
 
@@ -181,7 +189,8 @@ BCache::Entry::Entry (Ptr<BCache> bcache)
   m_homekeygentoken (0xFFFFFFFFFFFFFFFF),
   m_careofkeygentoken (0xFFFFFFFFFFFFFFFF),
   m_homenonceindex (0xFF),
-  m_careofnonceindex (0xFF)
+  m_careofnonceindex (0xFF),
+  m_FlagR(0)  //NEMO
 {
 }
 
@@ -432,6 +441,27 @@ BCache::Entry::State_e BCache::Entry::GetState ()
   NS_LOG_FUNCTION (this);
   return m_addrstate;
 }
+
+bool BCache::Entry::GetFlagR () const   //NEMO
+{
+        return m_FlagR;
+}
+
+void BCache::Entry::SetFlagR (bool r)    // NEMO
+{
+        m_FlagR=r;
+}
+
+Ipv6Address BCache::Entry::GetMobileNetworkPrefix () const      //NEMO
+{
+   return m_mobilenetworkprefix;
+}
+ 
+void BCache::Entry::SetMobileNetworkPrefix (Ipv6Address prefix)   //NEMO
+{ 
+   m_mobilenetworkprefix=prefix;
+}
+
 
 }
 
